@@ -14,8 +14,8 @@ class GameList {
   };
 
 
-  static Game getGame(String title) {
-    return games[title]!;
+  static Game getGame(String code) {
+    return games[code]!;
   }
 
 

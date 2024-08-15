@@ -59,7 +59,10 @@ class _TitleBar extends State<TitleBar> {
                   },
 
 
-                );
+                ).then((value) {
+                  settingsOpen = false;
+
+                });
                 settingsOpen = true;
               },
               child: Padding(

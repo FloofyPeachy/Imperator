@@ -11,8 +11,8 @@ import 'package:imperator_desktop/model/model.dart';
 import 'package:xml/xml.dart';
 import 'package:xml/xml_events.dart';
 class SongList {
-  static Map<Game, List<Song>> tracks = {};
-  static Song getSong(Game game, String title, String artist) {
+  static Map<String, List<Song>> tracks = {};
+  static Song getSong(String game, String title, String artist) {
     ExtractedResult<Song> result = extractOne(
         query: title,
         choices: tracks[game]!,
@@ -36,8 +36,8 @@ class SongList {
   static Future<void> loadAll() async {
     print("Loading songs...");
     GameList.games.forEach((key, value) async {
-      List<Song> songs = await value.parseSongs("assets/data/$key/songs.xml");
-      tracks[value] = songs;
+      List<Song> songs = await value.parseSongs("./data/$key/songs.xml");
+      tracks[key] = songs;
       print("Loaded ${songs.length} songs for ${value.title}");
     });
 

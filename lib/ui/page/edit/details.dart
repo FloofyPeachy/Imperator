@@ -30,19 +30,20 @@ class DetailView extends StatelessWidget {
   }
 
   Widget buildGameplayDetails(BuildContext context, Gameplay section, Game game) {
+
     return Stack(
       children: [
-        Container(
+        section.score != null ? Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.centerLeft,
               end: Alignment(0.9, 0.0),
 
-              colors: [game.colors[section.score.difficulty.type.toString()]!.withOpacity(0.5), Colors.transparent],
+              colors: [game.colors[section.score!.difficulty.type.toString()]!.withOpacity(0.5), Colors.transparent],
             ),
           ),
-        ),
-        Column(
+        ) : SizedBox(),
+        section.score != null ? Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.max,
@@ -51,14 +52,14 @@ class DetailView extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 //Image.network("https://sdvxindex.com//img/" + ((int.tryParse(section.song!.id) != null && int.tryParse(section.song!.id)! < 1000) ? "0" + section.song!.id : section.song!.id ) + "_" + section.song!.internalTitle! + "/jk_" + ((int.tryParse(section.song!.id) != null && int.tryParse(section.song!.id)! < 1000) ? "0" + section.song!.id : section.song!.id ) + "_1.webp",
-                Image.network(FairyJokeAPI.apiUrl + "games/sdvx/musics/" + section.song!.id + "/" + section.score.difficulty.type.toString().split(".")[1].toUpperCase() + ".png" ,
+                Image.network(FairyJokeAPI.apiUrl + "games/sdvx/musics/" + section.song!.id + "/" + section.score!.difficulty.type.name + ".png" ,
                   height: dH(context) * 0.25,
                 ),
 
 
                 Text(section.song!.title, style: TextStyle(fontSize: dH(context) * 0.045, fontWeight: FontWeight.bold)),
                 Text(section.song!.artist, style: TextStyle(fontSize: dH(context) * 0.035)),
-                DifficultyWidget(score: section.score),
+                DifficultyWidget(score: section.score!),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -102,9 +103,9 @@ class DetailView extends StatelessWidget {
                 )
             ),
            */
-            buildScoreCard(section.score, context)
+            section.score != null ? buildScoreCard(section.score!, context) : SizedBox()
          ],
-        )
+        ) : SizedBox()
       ],
 
 

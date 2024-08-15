@@ -119,6 +119,8 @@ class DifficultyType {
 
   static final List<DifficultyType> _types = [];
 
+  static final DifficultyType unknown = create("NOVICE", "NOV");
+
   static DifficultyType create(String name, String abbreviation) {
     final type = DifficultyType._(name, abbreviation);
     _types.add(type);
@@ -155,7 +157,7 @@ class Section {
 
 class Gameplay extends Section {
   Song? song;
-  Score score;
+  Score? score;
   final Games game;
   Gameplay({required this.song, required this.game, required this.score, required super.start, required super.end});
 
@@ -163,7 +165,7 @@ class Gameplay extends Section {
     return Gameplay(
       song: json['song'] != null ? Song.fromJson(json['song']) : null,
       game: Games.values[json['game']],
-      score: Score.fromJson(json['score']),
+      score:  json['score'] != null ? Score.fromJson(json['score']) : null,
       start: json['start'],
       end: json['end'],
     );
@@ -173,8 +175,8 @@ class Gameplay extends Section {
     return {
       'song': song?.toJson(),
       'game': game.index,
-      'score': score.toJson(),
-      'difficulty': score.difficulty.toJson(),
+      'score': score?.toJson(),
+      'difficulty': score?.difficulty.toJson(),
       'start': start,
       'end': end,
     };

@@ -5,6 +5,7 @@ import 'package:animate_gradient/animate_gradient.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:imperator_desktop/const.dart';
+import 'package:imperator_desktop/core/config.dart';
 import 'package:imperator_desktop/core/cv/analyser.dart';
 import 'package:imperator_desktop/core/cv/processors.dart';
 import 'package:imperator_desktop/core/games.dart';
@@ -48,9 +49,12 @@ class _AnalysisScreen extends State<AnalysisScreen> {
     await player.seek(Duration(seconds: (sections.last.start ~/ 60) + 1));
     //Take a screenshot of the "ready frame"
     Uint8List? readyFrame = await player.screenshot(format: "image/jpeg");
-    Song song = await processor.parseSong(cv
-        .imdecode(readyFrame!, cv.IMREAD_GRAYSCALE)
-        .rotate(cv.ROTATE_90_CLOCKWISE));
+    Song? song;
+    if (Config.get("experimental/song_detection")) {
+      song = await processor.parseSong(cv
+          .imdecode(readyFrame!, cv.IMREAD_GRAYSCALE)
+          .rotate(cv.ROTATE_90_CLOCKWISE));
+    }
 
     //Now, make a preview image by going halfway through the section
     await player.seek(Duration(
@@ -60,11 +64,15 @@ class _AnalysisScreen extends State<AnalysisScreen> {
     //Finally, get the score
     await player.seek(Duration(seconds: (sections.last.end ~/ 60) - 1));
     Uint8List? endFrame = await player.screenshot(format: "image/jpeg");
-    Score score = await processor
-        .parseScore(cv.imdecode(endFrame!, cv.IMREAD_GRAYSCALE));
-    Difficulty difficulty = await processor
-        .processDifficulty(cv.imdecode(endFrame, cv.IMREAD_COLOR), song);
-    score.difficulty = difficulty;
+    Score? score;
+    if (Config.get("experimental/score_detection") && Config.get("experimental/song_detection")) {
+      score = await processor
+          .parseScore(cv.imdecode(endFrame!, cv.IMREAD_GRAYSCALE));
+
+      Difficulty difficulty = await processor
+          .processDifficulty(cv.imdecode(endFrame, cv.IMREAD_COLOR), song!);
+      score.difficulty = difficulty;
+    }
     //Update the section with the song data
     setState(() {
       previews[previews.length - 1] = previewFrame!;
@@ -124,11 +132,11 @@ class _AnalysisScreen extends State<AnalysisScreen> {
               criticalLate: 37,
               nearLate: 0,
               missLate: 2,
-              difficulty: Difficulty(type: DifficultyType.getType("maximum"), level: 18),
+              difficulty: Difficulty(type: DifficultyType.unknown, level: 18),
               percentage: 87.9,
               gauge: Gauges.excessive,
             ),
-            song: SongList.getSong(SoundVoltex(), "Imperator", "xe"));
+            song: SongList.getSong("sdvx", "Imperator", "xe"));
       }
     });
   }
@@ -219,6 +227,7 @@ class _AnalysisScreen extends State<AnalysisScreen> {
   Widget buildSectionCard(Gameplay section, Uint8List? preview) {
     return Card(
         child: InkWell(
+
       onTap: () {
         currentSection.value = section;
         currentSection.notifyListeners();
@@ -228,8 +237,8 @@ class _AnalysisScreen extends State<AnalysisScreen> {
           preview != null
               ? Image.memory(preview, height: 200)
               : CircularProgressIndicator(),
-          Text(section.song!.title),
-          Text(section.score.score.toString()),
+          Text(section.song == null ? "Unknown" : section.song!.title),
+          //Text(section.score.score.toString()),
         ],
       ),
     ));

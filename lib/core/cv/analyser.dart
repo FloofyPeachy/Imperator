@@ -74,10 +74,10 @@ class VideoAnalyser {
         print("Score screen detected at frame $frameCount");
 
         //var song = await processor.processSong(gameplayStartFrameMat);
-        var score = await processor.parseScore(frame);
-        print("Score: $score");
+        //var score = await processor.parseScore(frame);
+       // print("Score: $score");
 
-        Gameplay gameplay = Gameplay(song: null, game: Games.SOUND_VOLTEX, score: score, start: gameplayStartFrame, end: frameCount + 100);
+        Gameplay gameplay = Gameplay(song: null, game: Games.SOUND_VOLTEX, score: null, start: gameplayStartFrame, end: frameCount + 100);
         gameplays.add(gameplay);
         //gameplays.add(Gameplay(track: Track(id: 0, title: "Test", artist: "Test", difficulty: "Test", level: 0, maxCombo: 0), game: 0, score: score, start: gameplayStartFrame, end: frameCount + 100));
         print("Added gameplay!!");

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:imperator_desktop/const.dart';
 import 'package:imperator_desktop/core/util.dart';
 import 'package:imperator_desktop/model/model.dart';
+import 'package:imperator_desktop/state.dart';
 
 class DifficultyWidget extends StatelessWidget {
   final Score score;
@@ -12,7 +13,7 @@ class DifficultyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-      //  color: difficultyToColor(score.difficulty.type),
+       color: currentGame.value!.colors[score.difficulty.type.name],
         borderRadius: BorderRadius.circular(3),
       ),
       padding: EdgeInsets.all(5),

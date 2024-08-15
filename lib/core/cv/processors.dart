@@ -33,7 +33,7 @@ class FrameProcessor {
   }
 
   Future<Score> parseScore(cv.Mat frame) async {
-    return Score(score: 0, maxCombo: 0, sCritical: 0, criticalEarly: 0, criticalLate: 0, nearEarly: 0, nearLate: 0, missEarly: 0, missLate :0, percentage: 0, gauge: Gauges.effective, difficulty: Difficulty(type: DifficultyType.getType("maximum"), level: 0));
+    return Score(score: 0, maxCombo: 0, sCritical: 0, criticalEarly: 0, criticalLate: 0, nearEarly: 0, nearLate: 0, missEarly: 0, missLate :0, percentage: 0, gauge: Gauges.effective, difficulty: Difficulty(type: DifficultyType.getType("MAXIMUM"), level: 0));
   }
 
   Future<Song> parseSong(cv.Mat frame) async {
@@ -67,29 +67,29 @@ class SoundVoltexProcessor extends FrameProcessor {
   Future<void> loadTemplates(int version) async {
     this.version = version;
     startTemplate =
-        imread("./template/sdvx/start_reg.jpg", flags: IMREAD_GRAYSCALE)
+        imread("./data/sdvx/templates/start_reg.jpg", flags: IMREAD_GRAYSCALE)
             .rowRange(700, 860);
     startHexa1Template =
-        imread("./template/sdvx/start_hexa1.jpg", flags: IMREAD_GRAYSCALE)
+        imread("./data/sdvx/templates/start_hexa1.jpg", flags: IMREAD_GRAYSCALE)
             .rowRange(700, 860);
     startHexa2Template =
-        imread("./template/sdvx/start_hexa2.jpg", flags: IMREAD_GRAYSCALE)
+        imread("./data/sdvx/templates/start_hexa2.jpg", flags: IMREAD_GRAYSCALE)
             .rowRange(700, 860);
     scoreTemplate =
-        imread("./template/sdvx/score.jpg", flags: IMREAD_GRAYSCALE);
+        imread("./data/sdvx/templates/score.jpg", flags: IMREAD_GRAYSCALE);
     scoreMegamixTemplate =
-        imread("./template/sdvx/score_megamix.jpg", flags: IMREAD_GRAYSCALE);
+        imread("./data/sdvx/templates/score_megamix.jpg", flags: IMREAD_GRAYSCALE);
 
-    zero = imread("./template/sdvx/num/0.jpg", flags: IMREAD_GRAYSCALE);
-    one = imread("./template/sdvx/num/1.jpg", flags: IMREAD_GRAYSCALE);
-    two = imread("./template/sdvx/num/2.jpg", flags: IMREAD_GRAYSCALE);
-    three = imread("./template/sdvx/num/3.jpg", flags: IMREAD_GRAYSCALE);
-    four = imread("./template/sdvx/num/4.jpg", flags: IMREAD_GRAYSCALE);
-    five = imread("./template/sdvx/num/5.jpg", flags: IMREAD_GRAYSCALE);
-    six = imread("./template/sdvx/num/6.jpg", flags: IMREAD_GRAYSCALE);
-    seven = imread("./template/sdvx/num/7.jpg", flags: IMREAD_GRAYSCALE);
-    eight = imread("./template/sdvx/num/8.jpg", flags: IMREAD_GRAYSCALE);
-    nine = imread("./template/sdvx/num/9.jpg", flags: IMREAD_GRAYSCALE);
+    zero = imread("./data/sdvx/templates/num/0.jpg", flags: IMREAD_GRAYSCALE);
+    one = imread("./data/sdvx/templates/num/1.jpg", flags: IMREAD_GRAYSCALE);
+    two = imread("./data/sdvx/templates/num/2.jpg", flags: IMREAD_GRAYSCALE);
+    three = imread("./data/sdvx/templates/num/3.jpg", flags: IMREAD_GRAYSCALE);
+    four = imread("./data/sdvx/templates/num/4.jpg", flags: IMREAD_GRAYSCALE);
+    five = imread("./data/sdvx/templates/num/5.jpg", flags: IMREAD_GRAYSCALE);
+    six = imread("./data/sdvx/templates/num/6.jpg", flags: IMREAD_GRAYSCALE);
+    seven = imread("./data/sdvx/templates/num/7.jpg", flags: IMREAD_GRAYSCALE);
+    eight = imread("./data/sdvx/templates/num/8.jpg", flags: IMREAD_GRAYSCALE);
+    nine = imread("./data/sdvx/templates/num/9.jpg", flags: IMREAD_GRAYSCALE);
   }
 
   @override
@@ -163,16 +163,15 @@ class SoundVoltexProcessor extends FrameProcessor {
     //Get the color of the text
     Vec3b color = frame.at(3, 0);
     Color closest = findClosestColor(GameList.getGame("sdvx").colors.values.toList(), Color.fromRGBO(color.val3, color.val2, color.val1, 1));
-    DifficultyType type = DifficultyType.getType("novice");
-    /*print("Closest: $closest");
-    for (var element in difficultyColors.entries) {
-      print(element.key.toString() + ": " + element.value.value.toString());
-      if (closest == element.value) {
+    DifficultyType type = DifficultyType.unknown;
+    print("Closest: $closest");
+    for (var element in GameList.getGame("sdvx").colors.entries) {
+      if (element.value == closest) {
         print("Difficulty: ${element.key}");
-        type = DifficultyType.values.byName(element.key.name);
+        type = DifficultyType.getType(element.key);
         break;
       }
-    }*/
+    }
 
     //Now get the difficulty based on the color
     /*Color foundColor = difficultyColors.values.toList()[difficultyColors.values.toList().indexOf(Color(closest))];
@@ -207,7 +206,7 @@ class SoundVoltexProcessor extends FrameProcessor {
         break;
       }
     }*/
-    Difficulty diff = song.difficulties.firstWhere((element) => element.type == type, orElse: () => Difficulty(type: DifficultyType.getType("novice"), level: 5));
+    Difficulty diff = song.difficulties.firstWhere((element) => element.type == type, orElse: () => Difficulty(type: DifficultyType.getType("NOVICE"), level: 5));
     //Finally, infer the difficulty based on the song
     return Difficulty(type: type, level: diff.level);
 
@@ -234,7 +233,7 @@ class SoundVoltexProcessor extends FrameProcessor {
           difficulties: []);
     }
     return SongList.getSong(
-        SoundVoltex(),
+        "sdvx",
         text.elementAtOrNull(0) == null ? "" : text[0],
         text.elementAtOrNull(1) == null ? "" : text[1]);
   }
@@ -289,7 +288,7 @@ class SoundVoltexProcessor extends FrameProcessor {
           missLate: results[0],
           percentage: 0,
           gauge: Gauges.effective,
-          difficulty: Difficulty(type: DifficultyType.getType("novice"), level: 0));
+          difficulty: Difficulty(type: DifficultyType.unknown, level: 0));
     }
 
 
@@ -298,8 +297,6 @@ class SoundVoltexProcessor extends FrameProcessor {
   Future<String> processNumber(Mat frame) async {
     //Processes the number by column
     OutputArray result = OutputArray.empty();
-    var zeroMatch =
-        matchTemplate(frame, zero!, TM_CCOEFF_NORMED, result: result);
 
     var zeroMatches = getAllMatches(frame, zero!);
     var oneMatches = getAllMatches(frame, one!);
