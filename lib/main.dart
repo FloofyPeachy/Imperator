@@ -3,6 +3,7 @@ import 'package:imperator_desktop/core/cv/analyser.dart';
 import 'package:imperator_desktop/core/config.dart';
 import 'package:imperator_desktop/ui/page/edit/editor.dart';
 import 'package:imperator_desktop/ui/page/home.dart';
+import 'package:imperator_desktop/ui/page/live.dart';
 import 'package:imperator_desktop/ui/page/result/result.dart';
 import 'package:imperator_desktop/ui/settings.dart';
 import 'package:imperator_desktop/ui/titlebar.dart';
@@ -44,6 +45,7 @@ class ImperatorDesktop extends StatelessWidget {
       routes: {
         '/': (context) =>  HomeScreen(),
         '/load': (context) =>  LoadingScreen(),
+        '/live': (context) => const LivePage(),
         '/edit': (context) => EditPage(),
         '/analyse': (context) => const AnalysisScreen(),
         '/settings': (context) => SettingsPage(),

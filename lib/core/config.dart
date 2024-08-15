@@ -17,12 +17,20 @@ class Config {
       "song_detection" : ConfigOption("song_detection", "Song Detection", false, false),
       "score_detection" : ConfigOption("score_detection", "Score Detection", false, false),
     },
+    "live" : {
+      "ip_address" : ConfigOption("ip_address", "IP Address", "", ""),
+      "port" : ConfigOption("port", "Port", 0, 0),
+      "password" : ConfigOption("password", "Password", "", ""),
+    }
   });
 
   static Map<String, String> descriptions = {
     "system_frame": "Use the system frame instead of Imperator's custom one",
     "song_detection": "Enable automatic song detection. May not work on all songs.",
     "score_detection": "Enable automatic score detection. May not return accurate results.",
+    "ip_address": "The IP address of your OBS instance",
+    "port": "The port of your OBS instance",
+    "password": "The password of your OBS instance",
   };
 
   static Future<void> load() async {
