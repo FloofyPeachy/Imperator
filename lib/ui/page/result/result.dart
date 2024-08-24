@@ -92,7 +92,7 @@ class _AnalysisScreen extends State<AnalysisScreen> {
 
       if (analyseVideo) {
         Future.delayed(Duration(seconds: 1), () {
-          compute(analyser.analyse, receivePort.sendPort);
+          compute(analyser.process, receivePort.sendPort);
           setState(() {
             receiveStream = receivePort.asBroadcastStream() as Stream<dynamic>?;
             analysing = true;

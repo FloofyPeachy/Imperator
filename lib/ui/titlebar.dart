@@ -34,6 +34,14 @@ class _TitleBar extends State<TitleBar> {
         },
         child: Row(
           children: [
+            widget.navigator.currentState != null && widget.navigator.currentState!.canPop() ? MaterialButton(
+              minWidth: 0,
+              onPressed: () {
+                widget.navigator.currentState!.pop();
+              },
+              child: const Icon(Icons.arrow_back, size: 24),
+
+            ) : SizedBox(),
             MaterialButton(
               onPressed: () {
                 if (settingsOpen) {
