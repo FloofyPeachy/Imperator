@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:animate_gradient/animate_gradient.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -5,7 +7,9 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:imperator_desktop/core/config.dart';
 import 'package:imperator_desktop/core/cv/analyser.dart';
 import 'package:imperator_desktop/core/cv/processors.dart';
+import 'package:imperator_desktop/core/util.dart';
 import 'package:imperator_desktop/live/obs.dart';
+import 'package:imperator_desktop/model/model.dart';
 import 'package:obs_websocket/obs_websocket.dart';
 import 'package:validator_regex/validator_regex.dart';
 
@@ -103,7 +107,7 @@ class _LivePage extends State<LivePage> with TickerProviderStateMixin {
       });
     }
     obs.connect().then((value) {
-      obs.startCapture();
+      //obs.startCapture();
     }).onError((error, stackTrace) {
       print("Error connecting to OBS: $error");
       if (!context.mounted) return;
@@ -124,9 +128,6 @@ class _LivePage extends State<LivePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text("Live"),
-        ),
         body: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Row(
@@ -137,48 +138,115 @@ class _LivePage extends State<LivePage> with TickerProviderStateMixin {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(obs.connected == 0 ? "Not connected" : obs.connected == 1 ? "Connected" : "Connecting...", style: TextStyle(fontSize: 22, color: obs.connected == 0 ? Colors.red : obs.connected == 1 ? Colors.green : Colors.yellow),),
 
-                      OutlinedButton(
-                        onPressed: () {
-                          obs.connect();
-                        },
-                        child: const Text("Reconnect"),
-                      ),
-                      OutlinedButton(
-                        onPressed: () {
-                          obs.startCapture();
-                        },
-                        child: const Text("Start Capture"),
-                      ),
+                     ValueListenableBuilder<ObsConnectionState>(
+                       valueListenable: obs.connectionState,
+                       builder: (context, ObsConnectionState value, child) {
+                         return Column(
+                           children: [
+                             SizedBox(
+                                width: 200,
+                               child: ListTile(
+                                 title: Row(
+                                   mainAxisSize: MainAxisSize.min,
+                                   children: [
+                                     Container(
+                                       width: 15,
+                                       height: 15,
+                                       decoration: BoxDecoration(
+                                           color: value == ObsConnectionState.connected
+                                               ? Colors.green
+                                               : value == ObsConnectionState.disconnected
+                                               ? Colors.red
+                                               : value == ObsConnectionState.connecting
+                                               ? Colors.yellow
+                                               : value == ObsConnectionState.error
+                                               ? Colors.red
+                                               : Colors.grey,
+                                           shape: BoxShape.circle
+                                       ),
+                                     ),
+                                     SizedBox(width: dH(context) * 0.01,),
+                                     Text(value == ObsConnectionState.connected
+                                         ? "Connected"
+                                         : value == ObsConnectionState.disconnected
+                                         ? "Disconnected"
+                                         : value == ObsConnectionState.connecting
+                                         ? "Connecting"
+                                         : value == ObsConnectionState.error
+                                         ? "Error"
+                                         : "Unknown State", style: const TextStyle(fontWeight: FontWeight.bold),),
+                                   ],
+                                 ),
+                                 subtitle: Text("OBS: ${Config.get("live/ip_address")}:${Config.get("live/port")}"),
+
+                               ),
+                             ),
+                             FilledButton(
+                               onPressed: value == ObsConnectionState.connecting ? null : () {
+                                 if (value == ObsConnectionState.connected) {
+                                   obs.disconnect();
+                                 } else {
+                                   obs.connect();
+                                 }
+                               },
+                               child: Text(value == ObsConnectionState.connected ? "Disconnect" : "Connect"),
+                             ),
+                             SizedBox(height: dH(context) * 0.01,),
+                             value == ObsConnectionState.connected ? Column(
+                               children: [
+                                 Row(
+                                   children: [
+                                     Text("Source: ", style: TextStyle(fontSize: 16),),
+                                     FutureBuilder<List<SceneItemDetail>>(
+                                         future: obs.getSources(),
+                                         builder: (context, snapshot) {
+                                           if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                                             List<SceneItemDetail> sources = snapshot.data!;
+                                             print(snapshot.data);
+                                             return DropdownMenu<String>(
+                                               inputDecorationTheme: InputDecorationTheme(
+                                                 isDense: true,
+                                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                                                 constraints: BoxConstraints.tight(const
+                                                 Size.fromHeight(40)),
+                                                 border: OutlineInputBorder(
+                                                   borderRadius: BorderRadius.circular(2),
+                                                 ),
+                                               ),
+                                               initialSelection: obs.sceneItem.value,
+                                               dropdownMenuEntries: sources.map<DropdownMenuEntry<String>>((SceneItemDetail value) {
+                                                 return DropdownMenuEntry<String>(value: value.sourceName, label: value.sourceName);
+                                               }).toList(),
+                                               onSelected: (String? value) {
+                                                 obs.sceneItem.value = value;
+                                               },
+                                             );
+                                           }
+                                           if (snapshot.hasError) {
+                                             return Text("Couldn't get sources: ${snapshot.error}");
+                                           }
+                                           return const SpinKitThreeBounce(color: Colors.blue, size: 20,);
+                                         }
+                                     ),
+
+                                   ],
+                                 ),
+                                 SizedBox(height: dH(context) * 0.01,),
+                                 FilledButton(
+                                   onPressed: obs.sceneItem.value == null ? null : () {
+                                     obs.startCapture();
+                                   },
+                                   child: Text("Start Capture"),
+                                 ),
+                               ],
+                             ) : SizedBox(),
+                           ],
+                         );
+                       },
+                     ),
                       Divider(),
-                      Row(
-                        children: [
-                          Text("Source: ", style: TextStyle(fontSize: 16),),
-                          FutureBuilder<List<SceneItemDetail>>(
-                            future: obs.getSources(),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.done) {
-                                List<SceneItemDetail> sources = snapshot.data!;
-                                print(snapshot.data);
-                                return DropdownMenu<String>(
-                                  initialSelection: obs.sceneItem,
-                                  dropdownMenuEntries: sources.map<DropdownMenuEntry<String>>((SceneItemDetail value) {
-                                    return DropdownMenuEntry<String>(value: value.sourceName, label: value.sourceName);
-                                  }).toList(),
-                                  onSelected: (String? value) {
-                                    obs.sceneItem = value;
-                                  },
-                                );
-                              }
-                              if (snapshot.hasError) {
-                                return Text("Couldn't get sources: ${snapshot.error}");
-                              }
-                              return const SpinKitThreeBounce(color: Colors.blue, size: 20,);
-                            }
-                          ),
-                        ],
-                      ),
+
 
                       /*DropdownButton<String>(
                         items: obs.source!.
@@ -204,24 +272,45 @@ class _LivePage extends State<LivePage> with TickerProviderStateMixin {
                 child: Card(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Imperator Live", style: TextStyle(fontSize: 26),),
-                        Text("Imperator is currently watching " + obs.sceneItem! + " and looking for gameplay.", style: TextStyle(fontSize: 16),),
-                        Text("When it finds some, it'll record it.", style: TextStyle(fontSize: 16),),
-                        Divider(),
-                        StreamBuilder(
-                          stream: obs.gameplayStream.stream,
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              var data = snapshot.data;
-                              return buildStateCard(data!.$1);
-                            }
-                            return buildStateCard(GameplayStates.UNKNOWN);
-                          },
-                        )
-                      ],
+                    child: ValueListenableBuilder(
+                      valueListenable: obs.isCapturing,
+                      builder: (BuildContext context, bool value, Widget? child) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Imperator Live", style: TextStyle(fontSize: 26),),
+                            Text(value ? "Imperator is currently watching " + obs.sceneItem.value! + " and looking for gameplay." : 'Imperator isnt watching for gameplay right now. Click on "Start Capture" to start!!', style: TextStyle(fontSize: 16),),
+                            value ? Text("When it finds some, it'll record it.", style: TextStyle(fontSize: 16),) : SizedBox(),
+                            Divider(),
+                            StreamBuilder(
+                              stream: obs.gameplayStream.stream,
+                              builder: (context, snapshot) {
+                                if (!snapshot.hasData) {
+                                  return const SpinKitThreeBounce(color: Colors.blue, size: 20,);
+                                }
+
+                                GameplayStates state = snapshot.data!.$1;
+                                List<Gameplay> gameplays = snapshot.data!.$2;
+                                return Column(
+
+                                  children: [
+                                    snapshot.hasData ?  buildStateCard(state) : SizedBox(),
+                                    ListView.builder(
+                                      itemCount: gameplays.length,
+                                      shrinkWrap: true,
+                                      itemBuilder: (context, index) {
+                                        return buildSectionCard(gameplays[index], null);
+                                      },
+                                    )
+                                  ],
+                                );
+                              },
+                            ),
+
+                          ],
+                        );
+                      },
+
                     ),
                   ),
                 ),
@@ -260,5 +349,24 @@ class _LivePage extends State<LivePage> with TickerProviderStateMixin {
       ),
     );
 
+  }
+
+  Widget buildSectionCard(Gameplay section, Uint8List? preview) {
+    return Card(
+        child: InkWell(
+
+          onTap: () {
+
+          },
+          child: Column(
+            children: [
+              preview != null
+                  ? Image.memory(preview, height: 200)
+                  : CircularProgressIndicator(),
+              Text(section.song == null ? "Unknown" : section.song!.title),
+              //Text(section.score.score.toString()),
+            ],
+          ),
+        ));
   }
 }

@@ -51,6 +51,7 @@ class SoundVoltexProcessor extends FrameProcessor {
   Mat? startHexa2Template;
   Mat? scoreTemplate;
   Mat? scoreMegamixTemplate;
+  Mat? trackCrashTemplate;
   //Numbers
   Mat? zero;
   Mat? one;
@@ -79,6 +80,8 @@ class SoundVoltexProcessor extends FrameProcessor {
         imread("./data/sdvx/templates/score.jpg", flags: IMREAD_GRAYSCALE);
     scoreMegamixTemplate =
         imread("./data/sdvx/templates/score_megamix.jpg", flags: IMREAD_GRAYSCALE);
+    trackCrashTemplate =
+        imread("./data/sdvx/templates/crash.jpg", flags: IMREAD_GRAYSCALE);
 
     zero = imread("./data/sdvx/templates/num/0.jpg", flags: IMREAD_GRAYSCALE);
     one = imread("./data/sdvx/templates/num/1.jpg", flags: IMREAD_GRAYSCALE);
@@ -98,6 +101,7 @@ class SoundVoltexProcessor extends FrameProcessor {
     if (startTemplate == null) {
       loadTemplates(6);
     }
+
 
     frame = frame.rowRange(
       700,
@@ -125,6 +129,13 @@ class SoundVoltexProcessor extends FrameProcessor {
     var startHexa2MinMax = minMaxLoc(startHexa2Result);
     if (startHexa2MinMax.$2 > 0.7) {
       return (GameplayStates.GAMEPLAY, startHexa2MinMax.$2 * 100);
+    }
+
+    var trackCrashResult =
+        matchTemplate(frame, trackCrashTemplate!, TM_CCOEFF_NORMED);
+    var trackCrashMinMax = minMaxLoc(trackCrashResult);
+    if (trackCrashMinMax.$2 > 0.7) {
+      return (GameplayStates.TRACK_CRASH, trackCrashMinMax.$2 * 100);
     }
 
     if (forScore) {

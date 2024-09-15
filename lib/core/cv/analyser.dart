@@ -48,7 +48,7 @@ class VideoAnalyser {
 
     while (true) {
       Mat? frame = await source.getNextFrame();
-      if (frame == null) {
+      if (frame == null || frame.isEmpty) {
         continue;
       }
 
@@ -202,5 +202,6 @@ enum GameplayStates {
   UNKNOWN,
   PRE_GAMEPLAY,
   GAMEPLAY,
+  TRACK_CRASH,
   POST_GAMEPLAY,
 }

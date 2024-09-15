@@ -53,7 +53,7 @@ class OBSFrameSource extends FrameSource {
   @override
   Future<Mat> getFrame() async {
     final response = await obsConnection.obs!.sources.getSourceScreenshot(
-        SourceScreenshot(sourceName: obsConnection.sceneItem!, imageFormat: 'png')
+        SourceScreenshot(sourceName: obsConnection.sceneItem.value!, imageFormat: 'png')
     );
     return imdecode(response.bytes, IMREAD_GRAYSCALE);
   }
